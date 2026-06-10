@@ -83,21 +83,21 @@ export const footerNav: { heading: string; links: { label: string; href: string 
     {
       heading: "Help",
       links: [
-        { label: "Shipping & Returns", href: "/about" },
-        { label: "Size Guide", href: "/about" },
+        { label: "Shipping & Returns", href: "/info/shipping-returns" },
+        { label: "Size Guide", href: "/info/size-guide" },
         { label: "Track Order", href: "/account" },
-        { label: "Contact", href: "/about" },
-        { label: "FAQ", href: "/about" },
+        { label: "Contact", href: "/info/contact" },
+        { label: "FAQ", href: "/info/faq" },
       ],
     },
     {
       heading: "Company",
       links: [
         { label: "Our Story", href: "/about" },
-        { label: "Materials", href: "/about" },
-        { label: "Sustainability", href: "/about" },
-        { label: "Stores", href: "/about" },
-        { label: "Careers", href: "/about" },
+        { label: "Materials", href: "/info/materials" },
+        { label: "Sustainability", href: "/info/sustainability" },
+        { label: "Stores", href: "/info/stores" },
+        { label: "Careers", href: "/info/careers" },
       ],
     },
   ];

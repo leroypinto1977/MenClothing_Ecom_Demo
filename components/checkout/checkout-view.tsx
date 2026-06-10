@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Lock, Check, ShoppingBag } from "lucide-react";
 import { Container } from "@/components/container";
+import { Field } from "@/components/form-field";
 import { SiteButton } from "@/components/site-button";
 import { useCart } from "@/lib/store/cart-context";
 import { computeTotals } from "@/lib/cart-totals";
@@ -19,24 +20,6 @@ const DELIVERY = [
   { id: "express", label: "Express", note: "1–2 business days", price: 1200 },
   { id: "collect", label: "Collect in store", note: "Ready in 2 hours", price: 0 },
 ];
-
-function Field({
-  label,
-  className,
-  ...props
-}: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <label className={cn("block", className)}>
-      <span className="mb-1.5 block text-xs font-medium text-foreground/80">
-        {label}
-      </span>
-      <input
-        className="h-11 w-full border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:border-foreground"
-        {...props}
-      />
-    </label>
-  );
-}
 
 export function CheckoutView() {
   const { items, subtotal, clearCart, hydrated } = useCart();

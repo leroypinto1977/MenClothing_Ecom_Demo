@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ShopView } from "@/components/shop/shop-view";
 import { products, searchProducts } from "@/lib/data";
+import { parseShopState, type ShopSearchParams } from "@/lib/shop-params";
 
 export const metadata: Metadata = {
   title: "Shop All",
@@ -10,16 +11,16 @@ export const metadata: Metadata = {
 export default async function ShopPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; sort?: string; filter?: string }>;
+  searchParams: Promise<ShopSearchParams>;
 }) {
-  const { q, sort, filter } = await searchParams;
+  const sp = await searchParams;
+  const { q, sort, filter } = sp;
+  const initial = parseShopState(sp);
 
   let list = products;
   let title = "Shop All";
   let description: string | undefined =
     "The full collection — considered essentials, made to last.";
-  let initialSort = "featured";
-  let initialOnSale = false;
 
   if (q) {
     list = searchProducts(q);
@@ -32,11 +33,9 @@ export default async function ShopPage({
   } else if (filter === "sale") {
     title = "Sale";
     description = "Considered pieces, now at a considered price.";
-    initialOnSale = true;
   } else if (sort === "new") {
     title = "New Arrivals";
     description = "The latest additions to the collection.";
-    initialSort = "newest";
   }
 
   return (
@@ -44,8 +43,8 @@ export default async function ShopPage({
       products={list}
       title={title}
       description={description}
-      initialSort={initialSort}
-      initialOnSale={initialOnSale}
+      initialSort={initial.sort}
+      initialFilters={initial.filters}
     />
   );
 }

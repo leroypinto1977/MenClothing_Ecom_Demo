@@ -37,20 +37,23 @@ function Pinterest({ className }: IconProps) {
 }
 
 const socials = [
-  { name: "Instagram", Icon: Instagram },
-  { name: "X", Icon: X },
-  { name: "YouTube", Icon: Youtube },
-  { name: "Pinterest", Icon: Pinterest },
+  { name: "Instagram", href: "https://www.instagram.com", Icon: Instagram },
+  { name: "X", href: "https://x.com", Icon: X },
+  { name: "YouTube", href: "https://www.youtube.com", Icon: Youtube },
+  { name: "Pinterest", href: "https://www.pinterest.com", Icon: Pinterest },
 ];
 
 export function SocialLinks({ className }: { className?: string }) {
   return (
     <div className={cn("flex gap-3", className)}>
-      {socials.map(({ name, Icon }) => (
+      {socials.map(({ name, href, Icon }) => (
         <a
           key={name}
-          href="#"
-          aria-label={name}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`MERIDIAN on ${name}`}
+          title={name}
           className="flex size-9 items-center justify-center rounded-full border border-border text-foreground/70 transition-colors hover:border-foreground hover:text-foreground"
         >
           <Icon className="size-[1.05rem]" />

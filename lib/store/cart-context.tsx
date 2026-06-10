@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
 import type { CartItem, Product } from "@/lib/types";
 
 const STORAGE_KEY = "meridian.cart.v1";
@@ -77,10 +76,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         };
         return [next, ...prev];
       });
+      // The drawer opening is the confirmation — a toast on top would cover
+      // its checkout button.
       setCartOpen(true);
-      toast.success("Added to bag", {
-        description: `${product.name} · ${color} · ${size}`,
-      });
     },
     []
   );

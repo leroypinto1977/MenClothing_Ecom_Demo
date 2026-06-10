@@ -43,10 +43,10 @@ export function Footer() {
         <Container className="flex flex-col items-center justify-between gap-4 py-6 text-xs text-muted-foreground md:flex-row">
           <p>© {new Date().getFullYear()} MERIDIAN. A demo store. All rights reserved.</p>
           <div className="flex items-center gap-5">
-            <Link href="/about" className="hover:text-foreground">
+            <Link href="/info/privacy" className="hover:text-foreground">
               Privacy
             </Link>
-            <Link href="/about" className="hover:text-foreground">
+            <Link href="/info/terms" className="hover:text-foreground">
               Terms
             </Link>
             <div className="flex items-center gap-1.5 opacity-80">

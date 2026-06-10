@@ -1,12 +1,19 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import { ArrowRight, Check } from "lucide-react";
 import { Container } from "@/components/container";
 
+/** Routes where marketing content would distract from the task at hand. */
+const QUIET_ROUTES = ["/checkout", "/order-confirmation"];
+
 export function Newsletter() {
+  const pathname = usePathname();
   const [email, setEmail] = React.useState("");
   const [done, setDone] = React.useState(false);
+
+  if (QUIET_ROUTES.includes(pathname)) return null;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();

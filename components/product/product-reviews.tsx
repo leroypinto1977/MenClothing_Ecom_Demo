@@ -1,7 +1,7 @@
 import { CheckCircle2 } from "lucide-react";
 import { Container } from "@/components/container";
 import { StarRating } from "@/components/product/star-rating";
-import { SiteButton } from "@/components/site-button";
+import { WriteReviewButton } from "@/components/product/write-review-button";
 import { formatDate } from "@/lib/format";
 import type { Product, Review } from "@/lib/types";
 
@@ -59,9 +59,7 @@ export function ProductReviews({
               ))}
             </div>
 
-            <SiteButton variant="outline" size="md" className="mt-8 w-full">
-              Write a review
-            </SiteButton>
+            <WriteReviewButton />
           </div>
 
           {/* List */}

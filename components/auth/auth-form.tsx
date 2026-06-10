@@ -6,25 +6,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Container } from "@/components/container";
+import { Field } from "@/components/form-field";
 import { SiteButton } from "@/components/site-button";
 import { lifestyleImages } from "@/lib/data";
-
-function Field({
-  label,
-  ...props
-}: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs font-medium text-foreground/80">
-        {label}
-      </span>
-      <input
-        className="h-11 w-full border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:border-foreground"
-        {...props}
-      />
-    </label>
-  );
-}
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
@@ -94,7 +78,15 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
                 <Field label="Password" type="password" defaultValue="meridian" required />
                 {isLogin && (
                   <div className="mt-2 text-right">
-                    <button type="button" className="text-xs text-foreground/70 underline-offset-4 hover:underline">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        toast("Demo store — password reset is illustrative", {
+                          description: "Use any credentials to sign in.",
+                        })
+                      }
+                      className="text-xs text-foreground/70 underline-offset-4 hover:underline"
+                    >
                       Forgot password?
                     </button>
                   </div>

@@ -35,6 +35,15 @@ export function Header() {
         scrolled ? "border-b border-border shadow-[0_1px_0_rgba(0,0,0,0.02)]" : "border-b border-transparent"
       )}
       onMouseLeave={() => setActiveMenu(null)}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") setActiveMenu(null);
+      }}
+      onBlur={(e) => {
+        // Close the mega menu when keyboard focus leaves the header.
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+          setActiveMenu(null);
+        }
+      }}
     >
       <Container>
         <div
@@ -59,6 +68,7 @@ export function Header() {
                   key={item.label}
                   href={item.href}
                   onMouseEnter={() => setActiveMenu(item.label)}
+                  onFocus={() => setActiveMenu(item.label)}
                   className={cn(
                     "relative py-2 text-[0.8rem] font-medium uppercase tracking-[0.12em] transition-colors",
                     item.accent

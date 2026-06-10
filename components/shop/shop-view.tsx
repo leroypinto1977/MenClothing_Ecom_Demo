@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import { SlidersHorizontal, X, Check } from "lucide-react";
 import { Container } from "@/components/container";
 import { ProductGrid } from "@/components/product/product-grid";
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { categories } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/lib/types";
+import type { Product, ShopFilters } from "@/lib/types";
 
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL", "28", "30", "32", "34", "36", "38", "One Size"];
 
@@ -31,14 +32,7 @@ const SORTS = [
   { id: "rating", label: "Top Rated" },
 ];
 
-interface Filters {
-  categories: string[];
-  sizes: string[];
-  colors: string[];
-  price: string[];
-  fits: string[];
-  onSale: boolean;
-}
+type Filters = ShopFilters;
 
 const EMPTY: Filters = {
   categories: [],
@@ -55,21 +49,47 @@ export function ShopView({
   description,
   lockedCategory = false,
   initialSort = "featured",
-  initialOnSale = false,
+  initialFilters,
 }: {
   products: Product[];
   title: string;
   description?: string;
   lockedCategory?: boolean;
   initialSort?: string;
-  initialOnSale?: boolean;
+  initialFilters?: Filters;
 }) {
+  const pathname = usePathname();
   const [filters, setFilters] = React.useState<Filters>({
     ...EMPTY,
-    onSale: initialOnSale,
+    ...initialFilters,
   });
   const [sort, setSort] = React.useState(initialSort);
   const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  // Mirror filter state into the URL (shallow — no server round-trip) so
+  // filtered views survive refresh and can be shared. Skip the first run to
+  // leave the entry URL untouched until the user actually changes something.
+  const urlSyncReady = React.useRef(false);
+  React.useEffect(() => {
+    if (!urlSyncReady.current) {
+      urlSyncReady.current = true;
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const assign = (key: string, value: string) =>
+      value ? params.set(key, value) : params.delete(key);
+    assign("cat", filters.categories.join(","));
+    assign("size", filters.sizes.join(","));
+    assign("color", filters.colors.join(","));
+    assign("price", filters.price.join(","));
+    assign("fit", filters.fits.join(","));
+    assign("sale", filters.onSale ? "1" : "");
+    assign("sort", sort === "featured" ? "" : sort);
+    // The `sale` param now carries this state; drop the legacy entry param.
+    if (params.get("filter") === "sale") params.delete("filter");
+    const qs = params.toString();
+    window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
+  }, [filters, sort, pathname]);
 
   // Derive available options from the product set.
   const options = React.useMemo(() => {
@@ -178,7 +198,7 @@ export function ShopView({
       </div>
 
       {/* Toolbar */}
-      <div className="sticky top-14 z-20 -mx-5 mb-8 flex items-center justify-between gap-4 border-b border-border bg-background/95 px-5 py-3 backdrop-blur md:top-[4.5rem] md:hidden">
+      <div className="sticky top-14 z-20 -mx-5 mb-8 flex items-center justify-between gap-4 border-b border-border bg-background/95 px-5 py-3 backdrop-blur md:top-[4.5rem] lg:hidden">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -198,7 +218,7 @@ export function ShopView({
 
         {/* Main */}
         <div className="min-w-0 flex-1">
-          <div className="mb-6 hidden items-center justify-between md:flex">
+          <div className="mb-6 hidden items-center justify-between lg:flex">
             <p className="text-sm text-muted-foreground">
               {filtered.length} {filtered.length === 1 ? "item" : "items"}
             </p>

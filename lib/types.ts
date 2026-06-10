@@ -105,6 +105,16 @@ export interface User {
   addresses: Address[];
 }
 
+/** Client-side filter state for the shop views, mirrored into the URL. */
+export interface ShopFilters {
+  categories: string[];
+  sizes: string[];
+  colors: string[];
+  price: string[];
+  fits: string[];
+  onSale: boolean;
+}
+
 /** A line item in the cart — identified by product + variant. */
 export interface CartItem {
   key: string; // `${productId}:${color}:${size}`

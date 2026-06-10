@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ShopView } from "@/components/shop/shop-view";
 import { categories, getCategory, getProductsByCategory } from "@/lib/data";
+import { parseShopState, type ShopSearchParams } from "@/lib/shop-params";
 import type { CategorySlug } from "@/lib/types";
 
 export function generateStaticParams() {
@@ -21,12 +22,18 @@ export async function generateMetadata({
 
 export default async function CategoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ category: string }>;
+  searchParams: Promise<ShopSearchParams>;
 }) {
   const { category } = await params;
   const cat = getCategory(category);
   if (!cat) notFound();
+
+  const initial = parseShopState(await searchParams);
+  // The category is fixed by the route — never carry one in filter state.
+  initial.filters.categories = [];
 
   const list = getProductsByCategory(category as CategorySlug);
 
@@ -36,6 +43,8 @@ export default async function CategoryPage({
       title={cat.name}
       description={cat.description}
       lockedCategory
+      initialSort={initial.sort}
+      initialFilters={initial.filters}
     />
   );
 }

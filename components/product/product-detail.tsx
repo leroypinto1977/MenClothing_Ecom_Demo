@@ -61,14 +61,14 @@ export function ProductDetail({ product }: { product: Product }) {
           <span className="text-foreground">{product.name}</span>
         </nav>
 
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+        <div className="grid gap-10 md:grid-cols-2 lg:gap-16">
           {/* Gallery */}
-          <div className="lg:sticky lg:top-24 lg:self-start">
+          <div className="md:sticky md:top-24 md:self-start">
             <ProductGallery images={product.images} />
           </div>
 
           {/* Buy box */}
-          <div className="lg:py-2">
+          <div className="md:py-2">
             <div className="flex items-center gap-3">
               {product.badges.includes("bestseller") && (
                 <span className="label-eyebrow text-brand">Bestseller</span>
