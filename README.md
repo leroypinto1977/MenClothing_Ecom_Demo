@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MERIDIAN — Demo Menswear Store
 
-## Getting Started
+A polished, fully-navigable **demo ecommerce website** for a premium men's clothing
+brand, built for client presentation. This phase is **UI + dummy content only** — the
+interface, flows, and aesthetic are complete; the backend (real payments, auth, CMS,
+inventory) is intentionally not wired up yet.
 
-First, run the development server:
+- **Aesthetic:** Premium minimal — warm bone/ink palette, a single clay accent, Fraunces
+  serif display + Geist sans, large editorial photography.
+- **Brand:** _MERIDIAN — "Modern essentials, refined."_ (invented for the demo; easily
+  swapped for the client's real brand.)
+
+## Stack
+
+- **Next.js 16** (App Router) + **React 19** + **TypeScript**
+- **Tailwind CSS v4** with a custom brand theme (`app/globals.css`)
+- **shadcn/ui** (Base UI primitives) + **lucide-react** icons
+- Client state via React Context + `localStorage` (cart & wishlist)
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # production build (all routes type-check & prerender)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Screens
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Route | Screen |
+|-------|--------|
+| `/` | Home — hero, categories, new arrivals, lookbook, bestsellers, brand story |
+| `/shop` · `/shop/[category]` | Listing with filters (size, colour, price, fit), sort |
+| `/products/[slug]` | Product detail — gallery + zoom, variants, size guide, reviews, related |
+| `/cart` | Shopping bag + slide-out drawer |
+| `/checkout` | Multi-section checkout with sticky summary |
+| `/order-confirmation` | Order success + tracker |
+| `/account` | Tabbed hub — overview, orders, addresses, settings |
+| `/wishlist` | Saved items |
+| `/login` · `/register` | Split-screen auth |
+| `/about` | Editorial brand story |
+| `404` | Custom not-found |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Interactive (demo-wired): cart drawer with live count, wishlist toggle, search overlay
+with type-ahead, mega menu, mobile nav, add-to-cart toasts. Cart & wishlist persist to
+`localStorage`; checkout & auth are visual mocks.
 
-## Learn More
+## Dummy content
 
-To learn more about Next.js, take a look at the following resources:
+All content lives in `lib/data/` as typed objects (`products.ts`, `categories.ts`,
+`reviews.ts`, `orders.ts`, `user.ts`) — structured to mirror a future API/CMS so swapping
+in real data is straightforward.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Imagery** is a curated, verified pool of menswear photos (`lib/data/images.json`).
+To refresh it:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+node scripts/harvest-images.mjs   # pull fresh photos by category
+node scripts/verify-images.mjs    # keep only URLs that resolve, cap per category
+```
 
-## Deploy on Vercel
+## Swapping in the real brand
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Brand name/wordmark: `components/brand/wordmark.tsx`
+- Colours, fonts, radius: the `:root` tokens in `app/globals.css`
+- Catalogue & copy: `lib/data/`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Next phase (not in this demo)
+
+Real payments (Stripe), authentication, a CMS/PIM for the catalogue, inventory, search,
+and order management.
