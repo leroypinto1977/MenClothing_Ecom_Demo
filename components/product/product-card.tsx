@@ -94,16 +94,26 @@ export function ProductCard({
           <div className="bg-background/95 p-2.5 backdrop-blur">
             {product.sizes.length > 1 ? (
               <div className="flex items-center justify-center gap-1">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => quickAdd(size)}
-                    className="min-w-8 flex-1 px-1 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:bg-foreground hover:text-background"
-                  >
-                    {size}
-                  </button>
-                ))}
+                {product.sizes.map((size) => {
+                  const soldOut = product.soldOutSizes?.includes(size) ?? false;
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      disabled={soldOut}
+                      title={soldOut ? "Out of stock" : undefined}
+                      onClick={() => quickAdd(size)}
+                      className={cn(
+                        "min-w-8 flex-1 px-1 py-1.5 text-xs font-medium transition-colors",
+                        soldOut
+                          ? "cursor-not-allowed text-muted-foreground/40 line-through"
+                          : "text-foreground/80 hover:bg-foreground hover:text-background"
+                      )}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <button

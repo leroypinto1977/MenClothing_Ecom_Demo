@@ -39,6 +39,8 @@ export interface Product {
   reviewCount: number;
   badges: Badge[];
   relatedIds: string[];
+  /** Sizes currently unavailable for purchase. */
+  soldOutSizes?: string[];
 }
 
 export interface Category {

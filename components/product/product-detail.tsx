@@ -147,26 +147,38 @@ export function ProductDetail({ product }: { product: Product }) {
                 <SizeGuide />
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                {product.sizes.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => {
-                      setSize(s);
-                      setSizeError(false);
-                    }}
-                    className={cn(
-                      "min-w-12 border px-4 py-2.5 text-sm transition-colors",
-                      size === s
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-border hover:border-foreground",
-                      sizeError && "border-destructive"
-                    )}
-                  >
-                    {s}
-                  </button>
-                ))}
+                {product.sizes.map((s) => {
+                  const soldOut = product.soldOutSizes?.includes(s) ?? false;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      disabled={soldOut}
+                      title={soldOut ? "Out of stock" : undefined}
+                      onClick={() => {
+                        setSize(s);
+                        setSizeError(false);
+                      }}
+                      className={cn(
+                        "min-w-12 border px-4 py-2.5 text-sm transition-colors",
+                        soldOut
+                          ? "cursor-not-allowed border-border text-muted-foreground/50 line-through"
+                          : size === s
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border hover:border-foreground",
+                        sizeError && !soldOut && "border-destructive"
+                      )}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
               </div>
+              {product.soldOutSizes && product.soldOutSizes.length > 0 && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {product.soldOutSizes.join(", ")} currently out of stock.
+                </p>
+              )}
               {sizeError && (
                 <p className="mt-2 text-xs text-destructive">
                   Please select a size to continue.

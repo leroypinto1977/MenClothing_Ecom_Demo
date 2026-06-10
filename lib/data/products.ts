@@ -44,6 +44,15 @@ interface Concept {
   badges?: Badge[];
   rating: number;
   reviewCount: number;
+  /**
+   * Curated gallery photos: indices into this category's image bucket, or
+   * `"bucket:index"` to borrow from another bucket (the pools are shared
+   * stock photography — the best match for a product isn't always filed
+   * under its own category).
+   */
+  photos?: (number | string)[];
+  /** Sizes currently unavailable for purchase. */
+  soldOutSizes?: string[];
 }
 
 function slugify(name: string) {
@@ -68,8 +77,13 @@ function build(
 ): Product[] {
   const n = concepts.length;
   return concepts.map((c, i) => {
-    const images = [0, n, 2 * n].map((off) => {
-      const p = photo(category, i + off);
+    const refs = c.photos ?? [i, i + n, i + 2 * n];
+    const images = refs.map((ref) => {
+      const [bucketName, index] =
+        typeof ref === "number"
+          ? [category, ref]
+          : [ref.split(":")[0], Number(ref.split(":")[1])];
+      const p = photo(bucketName, index);
       return { url: p.url, thumb: p.thumb, alt: c.name };
     });
     return {
@@ -90,6 +104,7 @@ function build(
       reviewCount: c.reviewCount,
       badges: c.badges ?? [],
       relatedIds: [],
+      soldOutSizes: c.soldOutSizes,
     };
   });
 }
@@ -99,6 +114,7 @@ function build(
 const shirts = build("shirts", APPAREL, "Regular", [
   {
     name: "The Garment-Dyed Oxford",
+    photos: [0, 11, 12],
     subtitle: "Washed cotton button-down",
     price: 128,
     colors: [C.white, C.navy, C.olive, C.sand],
@@ -117,6 +133,8 @@ const shirts = build("shirts", APPAREL, "Regular", [
   },
   {
     name: "Linen Camp-Collar Shirt",
+    photos: [7, 12, 10],
+    soldOutSizes: ["XL"],
     subtitle: "Open-collar warm-weather shirt",
     price: 138,
     colors: [C.bone, C.olive, C.rust, C.slate],
@@ -136,6 +154,7 @@ const shirts = build("shirts", APPAREL, "Regular", [
   },
   {
     name: "Brushed Flannel Overshirt",
+    photos: [4, 8, 11],
     subtitle: "Midweight shirt-jacket",
     price: 165,
     compareAtPrice: 195,
@@ -156,6 +175,7 @@ const shirts = build("shirts", APPAREL, "Regular", [
   },
   {
     name: "Fine Poplin Dress Shirt",
+    photos: [12, 10, 0],
     subtitle: "Crisp tailored shirt",
     price: 118,
     colors: [C.white, C.slate, C.navy],
@@ -174,6 +194,7 @@ const shirts = build("shirts", APPAREL, "Regular", [
   },
   {
     name: "Corduroy Overshirt",
+    photos: [11, 6, 8],
     subtitle: "Fine-wale cotton cord",
     price: 158,
     colors: [C.camel, C.olive, C.ink],
@@ -196,6 +217,7 @@ const shirts = build("shirts", APPAREL, "Regular", [
 const tees = build("tees", APPAREL, "Regular", [
   {
     name: "Heavyweight Cotton Tee",
+    photos: [3, 0, 12],
     subtitle: "Structured everyday crew",
     price: 52,
     colors: [C.white, C.ink, C.sand, C.olive, C.navy],
@@ -214,6 +236,7 @@ const tees = build("tees", APPAREL, "Regular", [
   },
   {
     name: "Pima Pocket Tee",
+    photos: [2, 7, 4],
     subtitle: "Soft-hand chest-pocket tee",
     price: 48,
     colors: [C.bone, C.slate, C.rust, C.forest],
@@ -232,6 +255,7 @@ const tees = build("tees", APPAREL, "Regular", [
   },
   {
     name: "Long-Sleeve Henley",
+    photos: [13, 5, 1],
     subtitle: "Three-button waffle henley",
     price: 68,
     colors: [C.oat, C.charcoal, C.olive],
@@ -249,6 +273,7 @@ const tees = build("tees", APPAREL, "Regular", [
   },
   {
     name: "Slub Cotton V-Neck",
+    photos: [8, 10, 0],
     subtitle: "Textured lightweight tee",
     price: 46,
     compareAtPrice: 58,
@@ -271,6 +296,7 @@ const tees = build("tees", APPAREL, "Regular", [
 const knitwear = build("knitwear", APPAREL, "Regular", [
   {
     name: "Merino Crew Sweater",
+    photos: [12, 2, 13],
     subtitle: "Fine-gauge everyday knit",
     price: 165,
     colors: [C.oat, C.navy, C.forest, C.charcoal, C.burgundy],
@@ -289,6 +315,7 @@ const knitwear = build("knitwear", APPAREL, "Regular", [
   },
   {
     name: "Lambswool Half-Zip",
+    photos: [13, 10, 2],
     subtitle: "Funnel-neck pullover",
     price: 188,
     colors: [C.stone, C.slate, C.olive],
@@ -308,6 +335,8 @@ const knitwear = build("knitwear", APPAREL, "Regular", [
   },
   {
     name: "Chunky Wool Cardigan",
+    photos: [1, 11, 10],
+    soldOutSizes: ["S", "XXL"],
     subtitle: "Shawl-collar heavy knit",
     price: 220,
     colors: [C.ecru, C.charcoal, C.rust],
@@ -327,6 +356,7 @@ const knitwear = build("knitwear", APPAREL, "Regular", [
   },
   {
     name: "Cashmere Crewneck",
+    photos: [2, 12, 13],
     subtitle: "Pure grade-A cashmere",
     price: 295,
     colors: [C.oat, C.ink, C.camel],
@@ -344,6 +374,7 @@ const knitwear = build("knitwear", APPAREL, "Regular", [
   },
   {
     name: "Fine-Gauge Rollneck",
+    photos: [11, 3, 10],
     subtitle: "Merino turtleneck",
     price: 178,
     compareAtPrice: 210,
@@ -367,6 +398,7 @@ const knitwear = build("knitwear", APPAREL, "Regular", [
 const outerwear = build("outerwear", APPAREL, "Regular", [
   {
     name: "Wool Overcoat",
+    photos: [12, 10, 13],
     subtitle: "Tailored double-faced coat",
     price: 495,
     colors: [C.charcoal, C.camel, C.navy],
@@ -386,6 +418,7 @@ const outerwear = build("outerwear", APPAREL, "Regular", [
   },
   {
     name: "Waxed Field Jacket",
+    photos: [4, 5, 0],
     subtitle: "Water-resistant utility jacket",
     price: 320,
     colors: [C.olive, C.ink, C.tan],
@@ -405,6 +438,7 @@ const outerwear = build("outerwear", APPAREL, "Regular", [
   },
   {
     name: "Quilted Liner Jacket",
+    photos: ["shirts:1", "shirts:5", "shirts:3"],
     subtitle: "Lightweight diamond-quilt",
     price: 245,
     colors: [C.forest, C.charcoal, C.rust],
@@ -422,6 +456,7 @@ const outerwear = build("outerwear", APPAREL, "Regular", [
   },
   {
     name: "Suede Bomber",
+    photos: ["accessories:6", 2, 0],
     subtitle: "Goat-suede ribbed bomber",
     price: 520,
     compareAtPrice: 620,
@@ -445,6 +480,7 @@ const outerwear = build("outerwear", APPAREL, "Regular", [
 const trousers = build("trousers", WAIST, "Regular", [
   {
     name: "Pleated Wool Trouser",
+    photos: [8, 3, 12],
     subtitle: "Single-pleat tailored trouser",
     price: 175,
     colors: [C.charcoal, C.navy, C.olive],
@@ -464,6 +500,7 @@ const trousers = build("trousers", WAIST, "Regular", [
   },
   {
     name: "Organic Cotton Chino",
+    photos: [10, 8, 7],
     subtitle: "Garment-dyed straight chino",
     price: 118,
     colors: [C.sand, C.olive, C.ink, C.navy],
@@ -482,6 +519,8 @@ const trousers = build("trousers", WAIST, "Regular", [
   },
   {
     name: "Five-Pocket Selvedge",
+    photos: [6, 9, 7],
+    soldOutSizes: ["30"],
     subtitle: "Japanese selvedge denim",
     price: 168,
     colors: [C.navy, C.ink],
@@ -500,6 +539,7 @@ const trousers = build("trousers", WAIST, "Regular", [
   },
   {
     name: "Drawstring Lounge Trouser",
+    photos: [1, 13, 12],
     subtitle: "Relaxed cotton-linen pant",
     price: 98,
     compareAtPrice: 120,
@@ -523,6 +563,7 @@ const trousers = build("trousers", WAIST, "Regular", [
 const accessories = build("accessories", ONE_SIZE, "Regular", [
   {
     name: "Bridle Leather Belt",
+    photos: [1, 12, 5],
     subtitle: "Solid-brass buckle belt",
     price: 95,
     colors: [C.tan, C.ink],
@@ -541,6 +582,7 @@ const accessories = build("accessories", ONE_SIZE, "Regular", [
   },
   {
     name: "Lambswool Scarf",
+    photos: ["knitwear:6", "knitwear:4", "knitwear:7"],
     subtitle: "Woven double-faced scarf",
     price: 78,
     colors: [C.oat, C.charcoal, C.forest, C.burgundy],
@@ -559,6 +601,7 @@ const accessories = build("accessories", ONE_SIZE, "Regular", [
   },
   {
     name: "Leather Card Holder",
+    photos: [5, 9, 1],
     subtitle: "Slim four-pocket wallet",
     price: 65,
     colors: [C.ink, C.tan],
@@ -576,6 +619,7 @@ const accessories = build("accessories", ONE_SIZE, "Regular", [
   },
   {
     name: "Cotton Sock Trio",
+    photos: ["knitwear:9", "tees:5", "tees:1"],
     subtitle: "Ribbed everyday three-pack",
     price: 35,
     colors: [C.charcoal, C.navy, C.oat],
@@ -595,6 +639,7 @@ const accessories = build("accessories", ONE_SIZE, "Regular", [
   },
   {
     name: "Waxed Canvas Holdall",
+    photos: ["hero:13", "outerwear:6", 3],
     subtitle: "Weekend duffle bag",
     price: 245,
     compareAtPrice: 290,
