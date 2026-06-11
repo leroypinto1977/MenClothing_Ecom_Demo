@@ -4,7 +4,10 @@ import { SiteButton } from "@/components/site-button";
 import { heroImages } from "@/lib/data";
 
 export function Hero() {
-  const image = heroImages[0]?.url ?? heroImages[1]?.url;
+  // Street portrait (hero bucket 13) — camel coat on an autumn walk; the
+  // garden portrait (11) is the fallback. Crop tuned via object-position so
+  // the subject stays clear of the left-aligned copy at every breakpoint.
+  const image = heroImages[13]?.url ?? heroImages[11]?.url;
 
   return (
     <section className="relative">
@@ -15,7 +18,7 @@ export function Hero() {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-top"
+          className="object-cover object-[38%_32%]"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/30 to-black/10" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -36,7 +39,11 @@ export function Hero() {
               <SiteButton href="/shop" variant="light" size="lg">
                 Shop the collection
               </SiteButton>
-              <SiteButton href="/shop/knitwear" variant="outlineLight" size="lg">
+              <SiteButton
+                href="/shop/knitwear"
+                variant="outlineLight"
+                size="lg"
+              >
                 Explore knitwear
               </SiteButton>
             </div>
