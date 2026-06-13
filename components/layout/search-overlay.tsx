@@ -8,8 +8,8 @@ import { Search, X } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Container } from "@/components/container";
 import { useUI } from "@/lib/store/ui-context";
-import { searchProducts } from "@/lib/data";
 import { formatPrice } from "@/lib/format";
+import type { Product } from "@/lib/types";
 
 const POPULAR = ["Oxford", "Merino", "Overcoat", "Chino", "Leather", "Cashmere"];
 
@@ -21,15 +21,45 @@ export function SearchOverlay() {
 
   React.useEffect(() => {
     if (searchOpen) {
-      setQuery("");
       const t = setTimeout(() => inputRef.current?.focus(), 80);
       return () => clearTimeout(t);
     }
   }, [searchOpen]);
 
-  const results = React.useMemo(() => searchProducts(query).slice(0, 6), [query]);
+  const handleOpenChange = (open: boolean) => {
+    setSearchOpen(open);
+    if (!open) setQuery("");
+  };
 
-  const close = () => setSearchOpen(false);
+  const [results, setResults] = React.useState<Product[]>([]);
+  const [searching, setSearching] = React.useState(false);
+
+  // Debounced server search — products live in the database now.
+  React.useEffect(() => {
+    const q = query.trim();
+    if (!q) return;
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, {
+          signal: controller.signal,
+        });
+        if (res.ok) setResults(await res.json());
+      } catch {
+        // Aborted or offline — keep previous results.
+      }
+      if (!controller.signal.aborted) setSearching(false);
+    }, 150);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
+  const visibleResults = query.trim() ? results : [];
+
+  const close = () => handleOpenChange(false);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +69,7 @@ export function SearchOverlay() {
   };
 
   return (
-    <Sheet open={searchOpen} onOpenChange={setSearchOpen}>
+    <Sheet open={searchOpen} onOpenChange={handleOpenChange}>
       <SheetContent
         side="top"
         showCloseButton={false}
@@ -81,17 +111,19 @@ export function SearchOverlay() {
                 ))}
               </div>
             </div>
-          ) : results.length === 0 ? (
+          ) : visibleResults.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">
-              No results for “{query}”. Try a different term.
+              {searching
+                ? "Searching…"
+                : `No results for “${query}”. Try a different term.`}
             </p>
           ) : (
             <div className="py-5">
               <p className="label-eyebrow text-muted-foreground">
-                {results.length} result{results.length > 1 ? "s" : ""}
+                {visibleResults.length} result{visibleResults.length > 1 ? "s" : ""}
               </p>
               <ul className="mt-3 divide-y divide-border">
-                {results.map((p) => (
+                {visibleResults.map((p) => (
                   <li key={p.id}>
                     <Link
                       href={`/products/${p.slug}`}

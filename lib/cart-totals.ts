@@ -9,9 +9,27 @@ export interface Totals {
   total: number;
 }
 
-export function computeTotals(subtotal: number): Totals {
+export interface TotalsConfig {
+  freeShippingThreshold: number;
+  standardShipping: number;
+  /** Fractional rate, e.g. 0.08 for 8%. */
+  taxRate: number;
+}
+
+export const DEFAULT_TOTALS_CONFIG: TotalsConfig = {
+  freeShippingThreshold: FREE_SHIPPING_THRESHOLD,
+  standardShipping: STANDARD_SHIPPING,
+  taxRate: TAX_RATE,
+};
+
+export function computeTotals(
+  subtotal: number,
+  config: TotalsConfig = DEFAULT_TOTALS_CONFIG
+): Totals {
   const shipping =
-    subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING;
-  const tax = Math.round(subtotal * TAX_RATE);
+    subtotal === 0 || subtotal >= config.freeShippingThreshold
+      ? 0
+      : config.standardShipping;
+  const tax = Math.round(subtotal * config.taxRate);
   return { subtotal, shipping, tax, total: subtotal + shipping + tax };
 }

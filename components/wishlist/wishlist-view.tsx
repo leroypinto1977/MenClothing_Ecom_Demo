@@ -1,20 +1,37 @@
 "use client";
 
+import * as React from "react";
 import { Heart } from "lucide-react";
 import { Container } from "@/components/container";
 import { SiteButton } from "@/components/site-button";
 import { ProductGrid } from "@/components/product/product-grid";
 import { useWishlist } from "@/lib/store/wishlist-context";
-import { getProductById } from "@/lib/data";
 import type { Product } from "@/lib/types";
 
 export function WishlistView() {
   const { ids, hydrated, count } = useWishlist();
-  const items = ids
-    .map((id) => getProductById(id))
-    .filter((p): p is Product => Boolean(p));
+  // null = still resolving ids against the catalog API.
+  const [fetched, setFetched] = React.useState<Product[] | null>(null);
 
-  if (hydrated && items.length === 0) {
+  React.useEffect(() => {
+    if (!hydrated || ids.length === 0) return;
+    let active = true;
+    fetch(`/api/products?ids=${ids.map(encodeURIComponent).join(",")}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: Product[]) => {
+        if (active) setFetched(data);
+      })
+      .catch(() => {
+        if (active) setFetched([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [hydrated, ids]);
+
+  const items = ids.length === 0 ? [] : fetched;
+
+  if (hydrated && items && items.length === 0) {
     return (
       <Container className="flex flex-col items-center justify-center gap-5 py-28 text-center">
         <Heart className="size-12 text-muted-foreground/40" strokeWidth={1} />
@@ -40,7 +57,7 @@ export function WishlistView() {
         </h1>
       </div>
       <div className="mt-10">
-        {hydrated ? (
+        {hydrated && items ? (
           <ProductGrid products={items} priorityCount={4} />
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-9 md:grid-cols-4">

@@ -10,12 +10,6 @@ import {
 } from "@/lib/site";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
-import { AnnouncementBar } from "@/components/layout/announcement-bar";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { MobileNav } from "@/components/layout/mobile-nav";
-import { SearchOverlay } from "@/components/layout/search-overlay";
-import { CartDrawer } from "@/components/cart/cart-drawer";
 
 const geistSans = Geist({
   variable: "--font-sans",
@@ -87,13 +81,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Providers>
-          <AnnouncementBar />
-          <Header />
-          <MobileNav />
-          <SearchOverlay />
-          <CartDrawer />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          {children}
           <Toaster position="bottom-right" />
         </Providers>
       </body>

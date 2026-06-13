@@ -2,22 +2,17 @@
 
 import * as React from "react";
 
-const MESSAGES = [
-  "Complimentary shipping on orders over ₹12,000",
-  "Free 30-day returns — wear it, live in it, decide later",
-  "New season knitwear has landed",
-];
+const FALLBACK = ["Complimentary shipping on orders over ₹12,000"];
 
-export function AnnouncementBar() {
+export function AnnouncementBar({ messages }: { messages?: string[] }) {
+  const list = messages && messages.length > 0 ? messages : FALLBACK;
   const [index, setIndex] = React.useState(0);
 
   React.useEffect(() => {
-    const id = setInterval(
-      () => setIndex((i) => (i + 1) % MESSAGES.length),
-      4500
-    );
+    if (list.length < 2) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % list.length), 4500);
     return () => clearInterval(id);
-  }, []);
+  }, [list.length]);
 
   return (
     <div className="bg-foreground text-background">
@@ -26,7 +21,7 @@ export function AnnouncementBar() {
           key={index}
           className="animate-fade-in text-[0.6875rem] font-medium uppercase tracking-[0.2em]"
         >
-          {MESSAGES[index]}
+          {list[index % list.length]}
         </p>
       </div>
     </div>

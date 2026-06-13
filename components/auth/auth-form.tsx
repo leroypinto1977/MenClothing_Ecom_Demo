@@ -9,18 +9,43 @@ import { Container } from "@/components/container";
 import { Field } from "@/components/form-field";
 import { SiteButton } from "@/components/site-button";
 import { lifestyleImages } from "@/lib/data";
+import { signIn, signUp } from "@/lib/auth-client";
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
   const isLogin = mode === "login";
   const image = lifestyleImages[3]?.url ?? lifestyleImages[0]?.url;
+  const [pending, setPending] = React.useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast.success(isLogin ? "Welcome back" : "Account created", {
-      description: "Demo store — you're signed in as James.",
-    });
-    router.push("/account");
+    if (pending) return;
+    setPending(true);
+
+    const fd = new FormData(e.currentTarget);
+    const email = String(fd.get("email") ?? "");
+    const password = String(fd.get("password") ?? "");
+
+    const { error } = isLogin
+      ? await signIn.email({ email, password })
+      : await signUp.email({
+          email,
+          password,
+          name: `${fd.get("firstName") ?? ""} ${fd.get("lastName") ?? ""}`.trim(),
+        });
+
+    setPending(false);
+    if (error) {
+      toast.error(isLogin ? "Could not sign in" : "Could not create account", {
+        description: error.message ?? "Please check your details and try again.",
+      });
+      return;
+    }
+
+    toast.success(isLogin ? "Welcome back" : "Account created");
+    const next = new URLSearchParams(window.location.search).get("next");
+    router.push(next && next.startsWith("/") ? next : "/account");
+    router.refresh();
   };
 
   return (
@@ -64,31 +89,34 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             <form onSubmit={submit} className="mt-8 space-y-4">
               {!isLogin && (
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="First name" defaultValue="James" required />
-                  <Field label="Last name" defaultValue="Whitfield" required />
+                  <Field label="First name" name="firstName" required />
+                  <Field label="Last name" name="lastName" required />
                 </div>
               )}
               <Field
                 label="Email"
+                name="email"
                 type="email"
-                defaultValue="james.whitfield@example.com"
+                defaultValue={isLogin ? "james.whitfield@example.com" : undefined}
                 required
               />
               <div>
-                <Field label="Password" type="password" defaultValue="meridian" required />
+                <Field
+                  label="Password"
+                  name="password"
+                  type="password"
+                  defaultValue={isLogin ? "meridian" : undefined}
+                  minLength={8}
+                  required
+                />
                 {isLogin && (
                   <div className="mt-2 text-right">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        toast("Demo store — password reset is illustrative", {
-                          description: "Use any credentials to sign in.",
-                        })
-                      }
+                    <Link
+                      href="/forgot-password"
                       className="text-xs text-foreground/70 underline-offset-4 hover:underline"
                     >
                       Forgot password?
-                    </button>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -99,8 +127,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
                 </label>
               )}
 
-              <SiteButton size="block" className="mt-2">
-                {isLogin ? "Sign in" : "Create account"}
+              <SiteButton size="block" className="mt-2" disabled={pending}>
+                {pending ? "One moment…" : isLogin ? "Sign in" : "Create account"}
               </SiteButton>
             </form>
 
