@@ -10,6 +10,7 @@ import {
   productVariants,
   type OrderDbStatus,
 } from "@/lib/db/schema";
+import { sendOrderConfirmation, sendShippingUpdate } from "@/lib/notify";
 
 // --- Order numbers ----------------------------------------------------------
 
@@ -112,6 +113,11 @@ export async function transitionOrder(opts: {
     message: opts.message ?? `Status changed to ${opts.to}`,
     actorUserId: opts.actorUserId,
   });
+
+  // Notify the customer when their parcel ships.
+  if (opts.to === "shipped") {
+    await sendShippingUpdate(opts.orderId);
+  }
   return true;
 }
 
@@ -204,6 +210,9 @@ export async function markOrderPaid(opts: {
     toStatus: "paid",
     message: "Payment captured",
   });
+
+  // Order confirmation email (no-op when Resend isn't configured; idempotent).
+  await sendOrderConfirmation(opts.orderId);
 }
 
 export async function findOrderByNumber(orderNumber: string) {
