@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { computeTotals } from "@/lib/cart-totals";
+import { getStoreSettings } from "@/lib/settings";
 import { nextOrderNumber, recordEvent, signOrderToken } from "@/lib/orders";
 import {
   createRazorpayOrder,
@@ -56,9 +57,10 @@ export type CreateOrderResult =
 
 function deliveryPrice(
   method: CheckoutInput["deliveryMethod"],
-  baseShipping: number
+  baseShipping: number,
+  expressShipping: number
 ) {
-  if (method === "express") return 1200;
+  if (method === "express") return expressShipping;
   if (method === "collect") return 0;
   return baseShipping;
 }
@@ -128,8 +130,17 @@ export async function createOrder(
     });
   }
 
-  const base = computeTotals(subtotal);
-  const shipping = deliveryPrice(input.deliveryMethod, base.shipping);
+  const settings = await getStoreSettings();
+  const base = computeTotals(subtotal, {
+    freeShippingThreshold: settings.freeShippingThreshold,
+    standardShipping: settings.standardShipping,
+    taxRate: settings.taxRatePct / 100,
+  });
+  const shipping = deliveryPrice(
+    input.deliveryMethod,
+    base.shipping,
+    settings.expressShipping
+  );
   const total = base.subtotal + base.tax + shipping;
 
   const orderNumber = await nextOrderNumber();

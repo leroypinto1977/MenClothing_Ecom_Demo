@@ -9,6 +9,7 @@ import {
   getNewArrivals,
   getBestsellers,
 } from "@/lib/db/queries";
+import { getContent } from "@/lib/content";
 import type { Product } from "@/lib/types";
 
 export const revalidate = 60;
@@ -21,17 +22,18 @@ function pad(seed: Product[], all: Product[], count: number) {
 }
 
 export default async function Home() {
-  const [arrivals, sellers, all] = await Promise.all([
+  const [arrivals, sellers, all, hero] = await Promise.all([
     getNewArrivals(),
     getBestsellers(),
     getAllProducts(),
+    getContent("home.hero"),
   ]);
   const newArrivals = pad(arrivals, all, 8);
   const bestsellers = pad(sellers, all, 8);
 
   return (
     <>
-      <Hero />
+      <Hero content={hero} />
       <Assurances />
       <CategoryTiles />
       <ProductSection

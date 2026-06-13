@@ -10,6 +10,9 @@ import {
   Users,
   LineChart,
   ShieldCheck,
+  Star,
+  FileText,
+  Settings,
   LogOut,
   Store,
 } from "lucide-react";
@@ -22,8 +25,11 @@ const NAV = [
   { href: "/admin/products", label: "Products", Icon: Package },
   { href: "/admin/inventory", label: "Inventory", Icon: Boxes },
   { href: "/admin/customers", label: "Customers", Icon: Users },
+  { href: "/admin/reviews", label: "Reviews", Icon: Star },
+  { href: "/admin/content", label: "Content", Icon: FileText },
   { href: "/admin/analytics", label: "Analytics", Icon: LineChart, adminOnly: true },
   { href: "/admin/users", label: "Staff & roles", Icon: ShieldCheck, adminOnly: true },
+  { href: "/admin/settings", label: "Settings", Icon: Settings, adminOnly: true },
 ];
 
 export function AdminSidebar({

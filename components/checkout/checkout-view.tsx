@@ -10,7 +10,7 @@ import { Container } from "@/components/container";
 import { Field } from "@/components/form-field";
 import { SiteButton } from "@/components/site-button";
 import { useCart } from "@/lib/store/cart-context";
-import { computeTotals } from "@/lib/cart-totals";
+import { computeTotals, type TotalsConfig } from "@/lib/cart-totals";
 import { formatPrice } from "@/lib/format";
 import { currentUser } from "@/lib/data/user";
 import { cn } from "@/lib/utils";
@@ -18,22 +18,22 @@ import { createOrder } from "@/app/(store)/checkout/actions";
 import { loadRazorpayCheckout } from "@/lib/load-razorpay";
 
 const DELIVERY = [
-  { id: "standard", label: "Standard", note: "2–4 business days", price: 0 },
-  { id: "express", label: "Express", note: "1–2 business days", price: 1200 },
-  { id: "collect", label: "Collect in store", note: "Ready in 2 hours", price: 0 },
+  { id: "standard", label: "Standard", note: "2–4 business days" },
+  { id: "express", label: "Express", note: "1–2 business days" },
+  { id: "collect", label: "Collect in store", note: "Ready in 2 hours" },
 ];
 
-export function CheckoutView() {
+export function CheckoutView({ config }: { config: TotalsConfig & { expressShipping: number } }) {
   const { items, subtotal, clearCart, hydrated } = useCart();
   const router = useRouter();
   const [delivery, setDelivery] = React.useState("standard");
   const [email, setEmail] = React.useState(currentUser.email);
   const [placing, setPlacing] = React.useState(false);
 
-  const base = computeTotals(subtotal);
-  // Standard follows the free-over-₹12,000 rule; express is a flat upgrade.
+  const base = computeTotals(subtotal, config);
+  // Standard follows the free-shipping rule; express is a flat upgrade.
   const priceFor = (id: string) =>
-    id === "express" ? 1200 : id === "collect" ? 0 : base.shipping;
+    id === "express" ? config.expressShipping : id === "collect" ? 0 : base.shipping;
   const deliveryPrice = priceFor(delivery);
   const total = base.subtotal + base.tax + deliveryPrice;
 

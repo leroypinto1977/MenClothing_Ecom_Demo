@@ -6,6 +6,7 @@ import {
   orderItems,
   products,
   productVariants,
+  reviews,
   users,
   addresses,
   type OrderDbStatus,
@@ -223,6 +224,40 @@ export async function getCustomer(id: string) {
     .filter((o) => REVENUE_STATUSES.includes(o.status))
     .reduce((s, o) => s + o.total, 0);
   return { user, orders: custOrders, addresses: custAddresses, ltv };
+}
+
+// --- Reviews ----------------------------------------------------------------
+
+export async function getReviewsForModeration(status?: string) {
+  const rows = await db
+    .select({
+      id: reviews.id,
+      author: reviews.author,
+      rating: reviews.rating,
+      title: reviews.title,
+      body: reviews.body,
+      date: reviews.date,
+      status: reviews.status,
+      productId: reviews.productId,
+      productName: products.name,
+      productSlug: products.slug,
+    })
+    .from(reviews)
+    .innerJoin(products, eq(reviews.productId, products.id))
+    .orderBy(desc(reviews.date));
+
+  if (status && ["pending", "published", "rejected"].includes(status)) {
+    return rows.filter((r) => r.status === status);
+  }
+  return rows;
+}
+
+export async function getReviewCounts() {
+  const rows = await db
+    .select({ status: reviews.status, count: sql<number>`count(*)::int` })
+    .from(reviews)
+    .groupBy(reviews.status);
+  return Object.fromEntries(rows.map((r) => [r.status, r.count])) as Record<string, number>;
 }
 
 // --- Users / staff (admin only) ---------------------------------------------

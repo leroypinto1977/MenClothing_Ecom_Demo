@@ -2,8 +2,9 @@ import Image from "next/image";
 import { Container } from "@/components/container";
 import { SiteButton } from "@/components/site-button";
 import { heroImages } from "@/lib/data";
+import type { HeroContent } from "@/lib/content";
 
-export function Hero() {
+export function Hero({ content }: { content: HeroContent }) {
   // Street portrait (hero bucket 13) — camel coat on an autumn walk; the
   // garden portrait (11) is the fallback. Crop tuned via object-position so
   // the subject stays clear of the left-aligned copy at every breakpoint.
@@ -25,26 +26,23 @@ export function Hero() {
 
         <Container className="relative flex h-full flex-col justify-end pb-16 md:justify-center md:pb-0">
           <div className="max-w-xl text-background animate-fade-up">
-            <p className="label-eyebrow text-background/80">
-              Autumn / Winter 2026
-            </p>
+            <p className="label-eyebrow text-background/80">{content.eyebrow}</p>
             <h1 className="mt-4 font-serif text-[2.75rem] leading-[1.03] tracking-tight md:text-6xl">
-              Modern essentials, refined.
+              {content.title}
             </h1>
             <p className="mt-5 max-w-md text-base leading-relaxed text-background/85">
-              Considered, well-made menswear designed to be worn season after
-              season — crafted in Europe from natural fibres and built to last.
+              {content.subtitle}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <SiteButton href="/shop" variant="light" size="lg">
-                Shop the collection
+              <SiteButton href={content.primaryHref} variant="light" size="lg">
+                {content.primaryCta}
               </SiteButton>
               <SiteButton
-                href="/shop/knitwear"
+                href={content.secondaryHref}
                 variant="outlineLight"
                 size="lg"
               >
-                Explore knitwear
+                {content.secondaryCta}
               </SiteButton>
             </div>
           </div>

@@ -470,6 +470,45 @@ async function seedOrders() {
   }
 }
 
+async function seedContent() {
+  await db.insert(schema.contentBlocks).values([
+    {
+      key: "home.hero",
+      data: {
+        eyebrow: "Autumn / Winter 2026",
+        title: "Modern essentials, refined.",
+        subtitle:
+          "Considered, well-made menswear designed to be worn season after season — crafted in Europe from natural fibres and built to last.",
+        primaryCta: "Shop the collection",
+        primaryHref: "/shop",
+        secondaryCta: "Explore knitwear",
+        secondaryHref: "/shop/knitwear",
+      },
+    },
+    {
+      key: "announcement",
+      data: {
+        messages: [
+          "Complimentary shipping on orders over ₹12,000",
+          "Free 30-day returns — wear it, live in it, decide later",
+          "New season knitwear has landed",
+        ],
+      },
+    },
+    {
+      key: "settings",
+      data: {
+        storeName: "MERIDIAN",
+        supportEmail: "support@meridian.demo",
+        freeShippingThreshold: 12000,
+        standardShipping: 600,
+        expressShipping: 1200,
+        taxRatePct: 8,
+      },
+    },
+  ]);
+}
+
 async function main() {
   console.log("Wiping existing data…");
   await wipe();
@@ -479,6 +518,8 @@ async function main() {
   await seedUsers();
   console.log("Seeding orders…");
   await seedOrders();
+  console.log("Seeding content…");
+  await seedContent();
 
   const [{ count: productCount }] = (await sql`SELECT count(*)::int AS count FROM products`) as { count: number }[];
   const [{ count: variantCount }] = (await sql`SELECT count(*)::int AS count FROM product_variants`) as { count: number }[];

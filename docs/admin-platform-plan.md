@@ -2,6 +2,19 @@
 
 _Last updated: 2026-06-13. Covers: authentication, admin dashboard, user management, product management, order fulfillment & tracking, billing & revenue, customer data, and CMS strategy._
 
+## Implementation status — all 6 phases shipped
+
+Stack chosen: **Neon Postgres + Drizzle**, **Better Auth** (email/password, `customer`/`staff`/`admin`), **Razorpay** (with a demo-capture fallback when keys are absent), **DB-backed content blocks** (no Sanity). Built and verified end-to-end:
+
+- **P1 Data layer** — schema + `scripts/seed.ts`; storefront reads from DB; `soldOutSizes` derived from variant stock.
+- **P2 Auth** — `proxy.ts` gate, `unauthorized`/`forbidden`, real `/account`.
+- **P3 Admin** — role-gated shell, dashboard, product CRUD + variant matrix, inventory.
+- **P4 Orders** — server-validated checkout, Razorpay + webhook (idempotent capture, stock decrement), fulfillment state machine, tracking, refunds, audit timeline; signed-token confirmation.
+- **P5 Customers/revenue** — customers + LTV, staff/role management, analytics (period-delta KPIs, revenue chart, category split, GST, new/returning), CSV export.
+- **P6 Content/polish** — DB content blocks wired to hero + announcement bar, reviews moderation, store/shipping/tax settings consumed at checkout.
+
+Demo logins: `james.whitfield@example.com / meridian` (customer), `admin@meridian.demo / meridian-admin` (admin). To go live on payments, set the `RAZORPAY_*` env vars (see `.env.example`) — checkout switches from demo-capture to the real gateway automatically.
+
 ## 1. Where the project stands today
 
 The storefront UI is complete (shop, product pages, cart, checkout, account, wishlist, login/register), but **everything behind it is mocked**:
