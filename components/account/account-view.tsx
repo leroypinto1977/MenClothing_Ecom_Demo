@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Package, MapPin, Settings, LayoutGrid, Heart, LogOut } from "lucide-react";
+import { signOut } from "@/lib/auth-client";
 import { Container } from "@/components/container";
 import { SiteButton } from "@/components/site-button";
 import { useWishlist } from "@/lib/store/wishlist-context";
@@ -23,6 +24,8 @@ const STATUS_STYLES: Record<string, string> = {
   "In transit": "bg-foreground/10 text-foreground",
   Shipped: "bg-foreground/10 text-foreground",
   Processing: "bg-secondary text-muted-foreground",
+  Cancelled: "bg-destructive/10 text-destructive",
+  Refunded: "bg-secondary text-muted-foreground",
 };
 
 export function AccountView({
@@ -34,6 +37,13 @@ export function AccountView({
 }) {
   const [tab, setTab] = React.useState<(typeof TABS)[number]["id"]>("overview");
   const wishlist = useWishlist();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <Container className="py-10 md:py-14">
@@ -43,12 +53,12 @@ export function AccountView({
           <h1 className="font-serif text-3xl tracking-tight md:text-4xl">
             Welcome back, {user.firstName}
           </h1>
-          <Link
-            href="/login"
+          <button
+            onClick={handleSignOut}
             className="hidden items-center gap-2 text-sm text-foreground/70 hover:text-foreground sm:inline-flex"
           >
             <LogOut className="size-4" /> Sign out
-          </Link>
+          </button>
         </div>
       </div>
 

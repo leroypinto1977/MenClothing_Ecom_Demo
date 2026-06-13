@@ -12,7 +12,7 @@ import { SiteButton } from "@/components/site-button";
 import { useCart } from "@/lib/store/cart-context";
 import { computeTotals } from "@/lib/cart-totals";
 import { formatPrice } from "@/lib/format";
-import { currentUser } from "@/lib/data";
+import { currentUser } from "@/lib/data/user";
 import { cn } from "@/lib/utils";
 
 const DELIVERY = [

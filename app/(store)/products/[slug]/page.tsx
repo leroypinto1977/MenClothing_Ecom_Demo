@@ -6,16 +6,13 @@ import { ProductGrid } from "@/components/product/product-grid";
 import { ProductDetail } from "@/components/product/product-detail";
 import { ProductReviews } from "@/components/product/product-reviews";
 import {
-  products,
   getProductBySlug,
-  getRelated,
+  getRelatedProducts,
   getProductReviews,
-} from "@/lib/data";
+} from "@/lib/db/queries";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
-}
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
@@ -23,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) return { title: "Product" };
   return {
     title: product.name,
@@ -38,11 +35,13 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const related = getRelated(product);
-  const reviews = getProductReviews(product);
+  const [related, reviews] = await Promise.all([
+    getRelatedProducts(product),
+    getProductReviews(product),
+  ]);
 
   const jsonLd = {
     "@context": "https://schema.org",

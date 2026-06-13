@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ShopView } from "@/components/shop/shop-view";
-import { products, searchProducts } from "@/lib/data";
+import { getAllProducts, searchProducts } from "@/lib/db/queries";
 import { parseShopState, type ShopSearchParams } from "@/lib/shop-params";
 
 export const metadata: Metadata = {
@@ -17,17 +17,17 @@ export default async function ShopPage({
   const { q, sort, filter } = sp;
   const initial = parseShopState(sp);
 
-  let list = products;
+  let list = await getAllProducts();
   let title = "Shop All";
   let description: string | undefined =
     "The full collection — considered essentials, made to last.";
 
   if (q) {
-    list = searchProducts(q);
+    list = await searchProducts(q);
     title = `Search: “${q}”`;
     description = `${list.length} ${list.length === 1 ? "result" : "results"} for your search.`;
   } else if (filter === "bestseller") {
-    list = products.filter((p) => p.badges.includes("bestseller"));
+    list = list.filter((p) => p.badges.includes("bestseller"));
     title = "Bestsellers";
     description = "The pieces our community reaches for, again and again.";
   } else if (filter === "sale") {

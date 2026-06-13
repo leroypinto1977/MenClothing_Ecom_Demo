@@ -6,7 +6,7 @@ import { Check, Package, Truck, Home } from "lucide-react";
 import { Container } from "@/components/container";
 import { SiteButton } from "@/components/site-button";
 import { formatPrice } from "@/lib/format";
-import { currentUser } from "@/lib/data";
+import { currentUser } from "@/lib/data/user";
 
 interface StoredOrder {
   id: string;

@@ -5,21 +5,29 @@ import { ProductSection } from "@/components/home/product-section";
 import { Lookbook } from "@/components/home/lookbook";
 import { BrandStory } from "@/components/home/brand-story";
 import {
-  products,
+  getAllProducts,
   getNewArrivals,
   getBestsellers,
-} from "@/lib/data";
+} from "@/lib/db/queries";
+import type { Product } from "@/lib/types";
 
-function pad(seed: ReturnType<typeof getNewArrivals>, count: number) {
+export const revalidate = 60;
+
+function pad(seed: Product[], all: Product[], count: number) {
   const seen = new Set<string>();
-  return [...seed, ...products]
+  return [...seed, ...all]
     .filter((p) => !seen.has(p.id) && seen.add(p.id))
     .slice(0, count);
 }
 
-export default function Home() {
-  const newArrivals = pad(getNewArrivals(), 8);
-  const bestsellers = pad(getBestsellers(), 8);
+export default async function Home() {
+  const [arrivals, sellers, all] = await Promise.all([
+    getNewArrivals(),
+    getBestsellers(),
+    getAllProducts(),
+  ]);
+  const newArrivals = pad(arrivals, all, 8);
+  const bestsellers = pad(sellers, all, 8);
 
   return (
     <>

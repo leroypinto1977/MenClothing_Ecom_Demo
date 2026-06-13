@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ShopView } from "@/components/shop/shop-view";
-import { categories, getCategory, getProductsByCategory } from "@/lib/data";
+import { categories, getCategory } from "@/lib/data";
+import { getProductsByCategory } from "@/lib/db/queries";
 import { parseShopState, type ShopSearchParams } from "@/lib/shop-params";
 import type { CategorySlug } from "@/lib/types";
 
@@ -35,7 +36,7 @@ export default async function CategoryPage({
   // The category is fixed by the route — never carry one in filter state.
   initial.filters.categories = [];
 
-  const list = getProductsByCategory(category as CategorySlug);
+  const list = await getProductsByCategory(category as CategorySlug);
 
   return (
     <ShopView

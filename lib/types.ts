@@ -73,7 +73,13 @@ export interface OrderItem {
   price: number;
 }
 
-export type OrderStatus = "Processing" | "Shipped" | "In transit" | "Delivered";
+export type OrderStatus =
+  | "Processing"
+  | "Shipped"
+  | "In transit"
+  | "Delivered"
+  | "Cancelled"
+  | "Refunded";
 
 export interface Order {
   id: string;
