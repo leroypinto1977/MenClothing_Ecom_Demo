@@ -10,7 +10,13 @@ import {
   productVariants,
   type OrderDbStatus,
 } from "@/lib/db/schema";
-import { sendOrderConfirmation, sendShippingUpdate } from "@/lib/notify";
+import {
+  sendOrderConfirmation,
+  sendShippingUpdate,
+  sendDeliveredUpdate,
+  sendOrderCancelled,
+  sendPaymentFailed,
+} from "@/lib/notify";
 
 // --- Order numbers ----------------------------------------------------------
 
@@ -114,10 +120,10 @@ export async function transitionOrder(opts: {
     actorUserId: opts.actorUserId,
   });
 
-  // Notify the customer when their parcel ships.
-  if (opts.to === "shipped") {
-    await sendShippingUpdate(opts.orderId);
-  }
+  // Customer notifications on key fulfilment milestones.
+  if (opts.to === "shipped") await sendShippingUpdate(opts.orderId);
+  else if (opts.to === "delivered") await sendDeliveredUpdate(opts.orderId);
+  else if (opts.to === "cancelled") await sendOrderCancelled(opts.orderId);
   return true;
 }
 
@@ -226,11 +232,12 @@ export async function findOrderByNumber(orderNumber: string) {
 }
 
 export async function markPaymentFailed(orderId: string) {
-  await transitionOrder({
+  const ok = await transitionOrder({
     orderId,
     to: "payment_failed",
     message: "Payment failed or was abandoned",
   });
+  if (ok) await sendPaymentFailed(orderId);
 }
 
 // Re-export so the variant lookup in the create action can share the and/eq.

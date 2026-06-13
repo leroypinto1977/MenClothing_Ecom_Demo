@@ -4,6 +4,7 @@ import { admin } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
+import { sendWelcome, sendPasswordReset } from "@/lib/notify";
 
 export const auth = betterAuth({
   // baseURL is inferred from the request (dev port varies); set
@@ -19,10 +20,22 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    sendResetPassword: async ({ user, url }) => {
+      await sendPasswordReset(user.email, url, user.name);
+    },
   },
   user: {
     additionalFields: {
       phone: { type: "string", required: false },
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          await sendWelcome(user.email, user.name);
+        },
+      },
     },
   },
   plugins: [

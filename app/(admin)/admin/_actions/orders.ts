@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/schema";
 import { requireAdmin, requireAdminArea } from "@/lib/admin/guard";
 import { recordEvent, transitionOrder } from "@/lib/orders";
+import { sendRefundIssued } from "@/lib/notify";
 import { createRazorpayRefund, razorpayEnabled } from "@/lib/razorpay";
 
 function revalidateOrder(id: string) {
@@ -181,5 +182,6 @@ export async function refundOrder(fd: FormData) {
     message: reason,
     actorUserId: session.user.id,
   });
+  await sendRefundIssued(id, order.total, reason);
   revalidateOrder(id);
 }

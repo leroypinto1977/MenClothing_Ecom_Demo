@@ -111,17 +111,12 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
                 />
                 {isLogin && (
                   <div className="mt-2 text-right">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        toast("Demo store — password reset is illustrative", {
-                          description: "Use any credentials to sign in.",
-                        })
-                      }
+                    <Link
+                      href="/forgot-password"
                       className="text-xs text-foreground/70 underline-offset-4 hover:underline"
                     >
                       Forgot password?
-                    </button>
+                    </Link>
                   </div>
                 )}
               </div>
