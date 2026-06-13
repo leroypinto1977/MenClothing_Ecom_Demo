@@ -14,6 +14,8 @@ import { computeTotals } from "@/lib/cart-totals";
 import { formatPrice } from "@/lib/format";
 import { currentUser } from "@/lib/data/user";
 import { cn } from "@/lib/utils";
+import { createOrder } from "@/app/(store)/checkout/actions";
+import { loadRazorpayCheckout } from "@/lib/load-razorpay";
 
 const DELIVERY = [
   { id: "standard", label: "Standard", note: "2–4 business days", price: 0 },
@@ -35,29 +37,111 @@ export function CheckoutView() {
   const deliveryPrice = priceFor(delivery);
   const total = base.subtotal + base.tax + deliveryPrice;
 
-  const placeOrder = (e: React.FormEvent) => {
+  const finishOrder = (orderNumber: string, token: string) => {
+    clearCart();
+    router.push(
+      `/order-confirmation?order=${encodeURIComponent(orderNumber)}&t=${token}`
+    );
+  };
+
+  const placeOrder = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (placing) return;
     if (items.length === 0) {
       toast.error("Your bag is empty");
       return;
     }
     setPlacing(true);
-    const id = `MER-${10000 + Math.floor(Math.random() * 89999)}`;
-    const order = {
-      id,
+
+    const fd = new FormData(e.currentTarget);
+    const str = (k: string) => String(fd.get(k) ?? "").trim();
+
+    const created = await createOrder({
       email,
-      date: new Date().toISOString(),
-      items,
-      delivery: DELIVERY.find((d) => d.id === delivery),
-      totals: { ...base, shipping: deliveryPrice, total },
-    };
-    try {
-      sessionStorage.setItem("meridian.lastOrder", JSON.stringify(order));
-    } catch {
-      /* ignore */
+      deliveryMethod: delivery as "standard" | "express" | "collect",
+      items: items.map((i) => ({
+        productId: i.productId,
+        color: i.color,
+        size: i.size,
+        quantity: i.quantity,
+      })),
+      shipping: {
+        firstName: str("firstName"),
+        lastName: str("lastName"),
+        line1: str("line1"),
+        line2: str("line2"),
+        city: str("city"),
+        postal: str("postal"),
+        country: str("country"),
+        phone: str("phone"),
+      },
+    });
+
+    if (!created.ok) {
+      toast.error(created.error);
+      setPlacing(false);
+      return;
     }
-    clearCart();
-    router.push("/order-confirmation");
+
+    // Demo mode — capture directly, no gateway configured.
+    if (created.demo) {
+      const res = await fetch("/api/checkout/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderNumber: created.orderNumber, demo: true }),
+      });
+      if (!res.ok) {
+        toast.error("Could not place your order. Please try again.");
+        setPlacing(false);
+        return;
+      }
+      finishOrder(created.orderNumber, created.token);
+      return;
+    }
+
+    // Live Razorpay Checkout.
+    const loaded = await loadRazorpayCheckout();
+    if (!loaded || !created.razorpay || !window.Razorpay) {
+      toast.error("Could not open the payment window. Please try again.");
+      setPlacing(false);
+      return;
+    }
+
+    const rp = new window.Razorpay({
+      key: created.razorpay.keyId,
+      amount: created.razorpay.amount * 100,
+      currency: "INR",
+      name: "MERIDIAN",
+      description: `Order ${created.orderNumber}`,
+      order_id: created.razorpay.orderId,
+      prefill: { email, name: `${str("firstName")} ${str("lastName")}`.trim() },
+      theme: { color: "#8a6a47" },
+      handler: async (response) => {
+        const res = await fetch("/api/checkout/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderNumber: created.orderNumber,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          }),
+        });
+        if (res.ok) {
+          finishOrder(created.orderNumber, created.token);
+        } else {
+          toast.error("Payment could not be verified. Please contact support.");
+          setPlacing(false);
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          toast("Payment cancelled");
+          setPlacing(false);
+        },
+      },
+    });
+    rp.open();
   };
 
   if (hydrated && items.length === 0) {
@@ -120,19 +204,20 @@ export function CheckoutView() {
 
             <Section step={2} title="Shipping address">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="First name" defaultValue={currentUser.firstName} required />
-                <Field label="Last name" defaultValue="Whitfield" required />
+                <Field label="First name" name="firstName" defaultValue={currentUser.firstName} required />
+                <Field label="Last name" name="lastName" defaultValue="Whitfield" required />
                 <Field
                   label="Address"
+                  name="line1"
                   className="sm:col-span-2"
                   defaultValue={currentUser.addresses[0].line1}
                   required
                 />
-                <Field label="Apartment, suite (optional)" className="sm:col-span-2" defaultValue={currentUser.addresses[0].line2} />
-                <Field label="City" defaultValue={currentUser.addresses[0].city} required />
-                <Field label="Postcode" defaultValue={currentUser.addresses[0].postal} required />
-                <Field label="Country" defaultValue={currentUser.addresses[0].country} required />
-                <Field label="Phone" type="tel" defaultValue="+44 7700 900123" />
+                <Field label="Apartment, suite (optional)" name="line2" className="sm:col-span-2" defaultValue={currentUser.addresses[0].line2} />
+                <Field label="City" name="city" defaultValue={currentUser.addresses[0].city} required />
+                <Field label="Postcode" name="postal" defaultValue={currentUser.addresses[0].postal} required />
+                <Field label="Country" name="country" defaultValue={currentUser.addresses[0].country} required />
+                <Field label="Phone" name="phone" type="tel" defaultValue="+44 7700 900123" />
               </div>
             </Section>
 

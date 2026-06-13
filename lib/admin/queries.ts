@@ -1,6 +1,7 @@
-import { and, asc, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, or, sql, ilike } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
+  orderEvents,
   orders,
   orderItems,
   products,
@@ -115,6 +116,66 @@ export async function getAdminProduct(id: string) {
       images: true,
     },
   });
+}
+
+// --- Orders -----------------------------------------------------------------
+
+export const ORDER_STATUSES: OrderDbStatus[] = [
+  "pending",
+  "payment_failed",
+  "paid",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+  "refund_requested",
+  "refunded",
+];
+
+export async function getAdminOrders(opts: {
+  status?: string;
+  search?: string;
+}) {
+  const conds = [];
+  if (opts.status && ORDER_STATUSES.includes(opts.status as OrderDbStatus)) {
+    conds.push(eq(orders.status, opts.status as OrderDbStatus));
+  }
+  if (opts.search?.trim()) {
+    const q = `%${opts.search.trim()}%`;
+    conds.push(or(ilike(orders.number, q), ilike(orders.email, q)));
+  }
+  return db.query.orders.findMany({
+    where: conds.length ? and(...conds) : undefined,
+    orderBy: [desc(orders.placedAt)],
+    limit: 100,
+    with: { items: { columns: { id: true } } },
+  });
+}
+
+export async function getAdminOrder(id: string) {
+  return db.query.orders.findFirst({
+    where: eq(orders.id, id),
+    with: {
+      items: true,
+      events: { orderBy: [desc(orderEvents.createdAt)] },
+      payments: { with: { refunds: true } },
+      user: { columns: { id: true, name: true, email: true } },
+    },
+  });
+}
+
+export async function getOrderCountsByStatus() {
+  const rows = await db
+    .select({
+      status: orders.status,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(orders)
+    .groupBy(orders.status);
+  return Object.fromEntries(rows.map((r) => [r.status, r.count])) as Record<
+    string,
+    number
+  >;
 }
 
 export async function getInventory(opts: { low?: boolean; search?: string }) {
