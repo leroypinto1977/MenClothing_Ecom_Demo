@@ -6,6 +6,8 @@ import {
   orderItems,
   products,
   productVariants,
+  users,
+  addresses,
   type OrderDbStatus,
 } from "@/lib/db/schema";
 
@@ -176,6 +178,67 @@ export async function getOrderCountsByStatus() {
     string,
     number
   >;
+}
+
+// --- Customers --------------------------------------------------------------
+
+export async function getCustomers(search?: string) {
+  const revenueOrder = sql`${orders.status} in ('paid','processing','shipped','delivered')`;
+  const rows = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      banned: users.banned,
+      createdAt: users.createdAt,
+      orderCount: sql<number>`count(${orders.id}) filter (where ${revenueOrder})::int`,
+      lifetimeValue: sql<number>`coalesce(sum(${orders.total}) filter (where ${revenueOrder}), 0)::int`,
+    })
+    .from(users)
+    .leftJoin(orders, sql`${orders.userId} = ${users.id}`)
+    .groupBy(users.id)
+    .orderBy(desc(sql`coalesce(sum(${orders.total}) filter (where ${revenueOrder}), 0)`));
+
+  const q = search?.trim().toLowerCase();
+  return q
+    ? rows.filter(
+        (r) => r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q)
+      )
+    : rows;
+}
+
+export async function getCustomer(id: string) {
+  const user = await db.query.users.findFirst({ where: eq(users.id, id) });
+  if (!user) return null;
+  const [custOrders, custAddresses] = await Promise.all([
+    db.query.orders.findMany({
+      where: eq(orders.userId, id),
+      orderBy: [desc(orders.placedAt)],
+      with: { items: { columns: { id: true } } },
+    }),
+    db.query.addresses.findMany({ where: eq(addresses.userId, id) }),
+  ]);
+  const ltv = custOrders
+    .filter((o) => REVENUE_STATUSES.includes(o.status))
+    .reduce((s, o) => s + o.total, 0);
+  return { user, orders: custOrders, addresses: custAddresses, ltv };
+}
+
+// --- Users / staff (admin only) ---------------------------------------------
+
+export async function getStaffAndRoles() {
+  return db.query.users.findMany({
+    orderBy: [asc(users.name)],
+    columns: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      banned: true,
+      createdAt: true,
+    },
+  });
 }
 
 export async function getInventory(opts: { low?: boolean; search?: string }) {

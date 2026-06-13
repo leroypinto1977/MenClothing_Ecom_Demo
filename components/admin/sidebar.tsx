@@ -7,6 +7,9 @@ import {
   Package,
   Boxes,
   ShoppingBag,
+  Users,
+  LineChart,
+  ShieldCheck,
   LogOut,
   Store,
 } from "lucide-react";
@@ -18,6 +21,9 @@ const NAV = [
   { href: "/admin/orders", label: "Orders", Icon: ShoppingBag },
   { href: "/admin/products", label: "Products", Icon: Package },
   { href: "/admin/inventory", label: "Inventory", Icon: Boxes },
+  { href: "/admin/customers", label: "Customers", Icon: Users },
+  { href: "/admin/analytics", label: "Analytics", Icon: LineChart, adminOnly: true },
+  { href: "/admin/users", label: "Staff & roles", Icon: ShieldCheck, adminOnly: true },
 ];
 
 export function AdminSidebar({
@@ -48,7 +54,7 @@ export function AdminSidebar({
       </div>
 
       <nav className="flex-1 space-y-0.5 p-3">
-        {NAV.map(({ href, label, Icon, exact }) => {
+        {NAV.filter((item) => !item.adminOnly || role === "admin").map(({ href, label, Icon, exact }) => {
           const active = exact ? pathname === href : pathname.startsWith(href);
           return (
             <Link
